@@ -9,7 +9,7 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 #canvas-container { position: absolute; top: 50px; left: 0; width: 100%; height: calc(100% - 50px); z-index: 1; }
 canvas { display: block; background: #fff; cursor: crosshair; }
 
-/* Thanh công cụ nằm ngang bên trên */
+
 .toolbar {
   position: absolute; top: 0; left: 0; width: 100%; height: 50px;
   background: #ffffff; border-bottom: 1px solid #ddd;
@@ -112,19 +112,19 @@ const C = {
 const S = {
   drawing: false,
   recog: false,
-  rDrag: false,     // Right drag for selection
-  selMove: false,   // Moving selection
-  selResize: false, // Resizing selection
+  rDrag: false,     
+  selMove: false,   
+  selResize: false,
   pts: [],
   lastT: 0,
   timer: null,
   shape: null,
   hist: [],
   redo: [],
-  sel: null,        // Current selection rect {x,y,w,h}
+  sel: null,       
   selStart: null,
   selEnd: null,
-  manip: null,      // 'piv' or 'mov' for single shape manipulation
+  manip: null,   
   manipData: null,
   scale: 1,
   off: {x:0, y:0},
@@ -141,7 +141,7 @@ const stDot = document.getElementById('stDot');
 
 function sz(){
   cvs.width = window.innerWidth;
-  cvs.height = window.innerHeight - 50; // Trừ thanh toolbar
+  cvs.height = window.innerHeight - 50; 
   draw();
 }
 window.addEventListener('resize', sz);
@@ -149,7 +149,7 @@ window.addEventListener('resize', sz);
 function getPos(e){
   let cx = e.touches ? e.touches[0].clientX : e.clientX;
   let cy = e.touches ? e.touches[0].clientY : e.clientY;
-  cy -= 50; // Offset toolbar
+  cy -= 50;
   return {
     x: (cx - S.off.x)/S.scale,
     y: (cy - S.off.y)/S.scale
@@ -239,10 +239,10 @@ function idle(){
 function pushH(o){ S.hist.push(o); if(S.hist.length>50) S.hist.shift(); S.redo=[]; }
 
 document.addEventListener('keydown', e => {
-  // Ctrl
+
   if(e.ctrlKey===true){
     if(S.drawing && S.recog && S.shape){ 
-      // Toggle nét đứt liên tục khi click chuột phải
+
       S.shape.d = !S.shape.d; 
       draw();
     }
@@ -251,12 +251,11 @@ document.addEventListener('keydown', e => {
 });
 
 
-// Xử lý sự kiện chuột
 cvs.addEventListener('mousedown', e => {
-  // Chuột phải
+
   if(e.button===2){
     if(!S.drawing){ 
-      // Bắt đầu chọn vùng
+
       S.rDrag=true; 
       S.selStart=getPos(e); 
       S.selEnd=S.selStart; 
@@ -264,18 +263,18 @@ cvs.addEventListener('mousedown', e => {
     return;
   }
   
-  // Chuột giữa (Pan) - Đã chỉnh sửa để chặn mặc định
+
   if(e.button===1){ 
-    e.preventDefault(); // Ngăn chặn icon cuộn trang của trình duyệt
+    e.preventDefault(); 
     S.pan=true; 
     S.panS={x:e.clientX, y:e.clientY}; 
-    cvs.style.cursor = 'grabbing'; // Hiệu ứng con trỏ nắm tay
+    cvs.style.cursor = 'grabbing'; 
     return; 
   }
   
   const p = getPos(e);
 
-  // Resize Handle check (Góc phải dưới của vùng chọn)
+
   if(S.sel){
     const handleSz = 10 / S.scale;
     const hx = S.sel.x + S.sel.w;
@@ -288,13 +287,13 @@ cvs.addEventListener('mousedown', e => {
     }
   }
 
-  // Move Selection check
+
   if(S.sel && inRect(p, S.sel)){
     S.selMove=true; S.manipData={lp:p};
     return;
   }
   
-  // Start Drawing
+
   S.sel=null; S.drawing=true; S.recog=false; S.shape=null; S.pts=[p]; S.lastT=Date.now();
   clearTimeout(S.timer); S.timer=setTimeout(idle, C.idleMs);
   draw();
@@ -303,7 +302,7 @@ cvs.addEventListener('mousedown', e => {
 cvs.addEventListener('mousemove', e => {
   const p = getPos(e);
   
-  // Pan Canvas
+
   if(S.pan){
     S.off.x += e.clientX - S.panS.x;
     S.off.y += e.clientY - S.panS.y;
@@ -311,29 +310,29 @@ cvs.addEventListener('mousemove', e => {
     draw(); return;
   }
   
-  // Vẽ khung chọn (Right Drag)
+
   if(S.rDrag){ S.selEnd=p; draw(); return; }
 
-  // Resize Selection
+
   if(S.selResize && S.sel){
     const dx = p.x - S.manipData.lp.x;
-    // Tính tỷ lệ scale dựa trên thay đổi chiều rộng
+
     let newW = S.sel.w + dx;
-    if(newW < 10) newW = 10; // Min width
+    if(newW < 10) newW = 10; 
     const factor = newW / S.sel.w;
     
-    scaleSel(factor, S.sel); // Scale objects
+    scaleSel(factor, S.sel);
     
-    // Cập nhật lại width của khung chọn để đồng bộ
+
     S.sel.w = newW;
-    S.sel.h *= factor; // Giữ tỷ lệ khung
+    S.sel.h *= factor;
     
-    S.manipData.lp = p; // Cập nhật vị trí chuột
+    S.manipData.lp = p; 
     draw();
     return;
   }
   
-  // Di chuyển Selection
+
   if(S.selMove && S.sel){
     const dx = p.x - S.manipData.lp.x, dy = p.y - S.manipData.lp.y;
     S.sel.x += dx; S.sel.y += dy;
@@ -342,7 +341,7 @@ cvs.addEventListener('mousemove', e => {
     draw(); return;
   }
   
-  // Vẽ hình
+
   if(!S.drawing) return;
   if(S.recog && S.shape){
     if(S.manip==='piv'){
@@ -360,17 +359,17 @@ cvs.addEventListener('mousemove', e => {
 });
 
 window.addEventListener('mouseup', e => {
-  // Kết thúc Pan
+
   if(S.pan){ 
     S.pan=false; 
-    cvs.style.cursor = 'crosshair'; // Trả về con trỏ mặc định
+    cvs.style.cursor = 'crosshair'; 
     return; 
   }
 
   if(S.selMove){ S.selMove=false; return; }
   if(S.selResize){ S.selResize=false; return; }
   
-  // Kết thúc chọn vùng
+
   if(S.rDrag){
     S.rDrag=false;
     const r = {x:Math.min(S.selStart.x,S.selEnd.x), y:Math.min(S.selStart.y,S.selEnd.y), w:Math.abs(S.selStart.x-S.selEnd.x), h:Math.abs(S.selStart.y-S.selEnd.y)};
@@ -396,16 +395,16 @@ window.addEventListener('mouseup', e => {
 
 cvs.addEventListener('contextmenu', e => e.preventDefault());
 
-// Zoom bằng lăn chuột
+
 cvs.addEventListener('wheel', e => {
   e.preventDefault();
   const p = getPos(e);
-  // Nếu lăn chuột trên vùng chọn -> Scale vùng chọn
+
   if(S.sel && inRect(p, S.sel)){
     const f = e.deltaY<0 ? 1.05 : 0.95;
     scaleSel(f, S.sel);
   } 
-  // Nếu không -> Zoom canvas
+
   else if(!S.drawing){
     const z = e.deltaY<0 ? 1.1 : 0.9;
     S.scale *= z;
@@ -424,9 +423,8 @@ function movShp(s, dx, dy){
 }
 
 function scaleSel(f, r){
-  // Scale objects relative to center of selection
+
   const cx = r.x+r.w/2, cy = r.y+r.h/2;
-  // Update rect geometry (only needed for wheel, drag handles update rect manually)
   if(!S.selResize) { r.w*=f; r.h*=f; r.x=cx-r.w/2; r.y=cy-r.h/2; }
   
   S.hist.forEach(s=>{
@@ -456,19 +454,19 @@ function draw(){
     else drawStroke(S.pts, S.col, S.wid);
   }
   
-  // Vẽ vùng chọn (Right Drag)
+
   if(S.rDrag){
     ctx.strokeStyle='#007bff'; ctx.lineWidth=1/S.scale; ctx.setLineDash([5/S.scale, 3/S.scale]);
     ctx.strokeRect(S.selStart.x, S.selStart.y, S.selEnd.x-S.selStart.x, S.selEnd.y-S.selStart.y);
     ctx.setLineDash([]);
   } 
-  // Vẽ khung selection đã chọn
+
   else if(S.sel){
     ctx.strokeStyle='#28a745'; ctx.lineWidth=1/S.scale; ctx.setLineDash([4/S.scale, 4/S.scale]);
     ctx.strokeRect(S.sel.x, S.sel.y, S.sel.w, S.sel.h);
     ctx.setLineDash([]);
     
-    // Vẽ Resize Handle (Góc phải dưới)
+
     const hs = 8/S.scale; 
     ctx.fillStyle = '#007bff';
     ctx.fillRect(S.sel.x + S.sel.w - hs/2, S.sel.y + S.sel.h - hs/2, hs, hs);
@@ -511,7 +509,7 @@ function drawStroke(pts, c, w){
   ctx.stroke();
 }
 
-// UI Event Handlers
+
 document.getElementById('inpColor').oninput=e=>S.col=e.target.value;
 document.getElementById('inpSize').oninput=e=>S.wid=parseInt(e.target.value);
 document.getElementById('inpSmooth').oninput=e=>C.smooth=parseFloat(e.target.value);
